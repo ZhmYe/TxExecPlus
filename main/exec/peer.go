@@ -266,40 +266,6 @@ func (peer *Peer) execImpl(instances []Instance) {
 		}(tmpInstance, &execWg)
 		execWg.Wait()
 	}
-	//var wg sync.WaitGroup
-	//wg.Add(config.PeerNumber)
-	////channel := make(chan int, config.PeerNumber)
-	//for id, bias := range epoch {
-	//	tmpId := id
-	//	tmpBias := bias
-	//	hashtable := peer.getHashTable(id, bias)
-	//	TransactionSort(hashtable)
-	//	go func(id int, bias int, wg *sync.WaitGroup) {
-	//		defer wg.Done()
-	//		record := peer.record[id]
-	//		allBlock := record.blocks[record.index : record.index+bias]
-	//		orderedTxs := getAllOrderTxs(allBlock)
-	//		for _, each := range orderedTxs {
-	//			var wg2 sync.WaitGroup
-	//			wg2.Add(len(each.txs))
-	//			for _, tx := range each.txs {
-	//				tmpTx := tx
-	//				go func(tmpTx Tx, wg2 *sync.WaitGroup) {
-	//					defer wg2.Done()
-	//					for _, op := range tmpTx.Ops {
-	//						if op.Type == OpRead {
-	//							Read(op.Key)
-	//						} else {
-	//							Write(op.Key, op.Val)
-	//						}
-	//					}
-	//				}(tmpTx, &wg2)
-	//			}
-	//			wg2.Wait()
-	//		}
-	//	}(tmpId, tmpBias, &wg)
-	//}
-	//wg.Wait()
 }
 func (peer *Peer) addExecNumber(extra int) {
 	tmp := peer.execNumber
@@ -371,24 +337,11 @@ func (peer *Peer) checkEpochTimeout() bool {
 }
 func (peer *Peer) BlockOut() {
 	var tx = GenTxSet(peer.id)
-	peer.log("geneate tx:" + strconv.Itoa(len(tx)))
-	//var tx = make([]*Tx, 0)
+	peer.log("generate tx:" + strconv.Itoa(len(tx)))
 	newBlock := NewBlock(tx)
-	//peer.mu.Lock()
-	//peer.blocks = append(peer.blocks, *newBlock)
 	for _, eachPeer := range peerMap {
-		//if eachPeer.id == peer.id {
-		//	continue
-		//}
 		eachPeer.AppendBlockToRecord(peer.id, *newBlock)
 	}
-	//for _, id := range peer.peersIds {
-	//	if id == peer.id {
-	//		continue
-	//	}
-	//	peerList.peers[id].AppendBlockToRecord(peer.id, *newBlock)
-	//}
-	//peer.mu.Unlock()
 	peer.log(peer.string())
 
 }
@@ -420,11 +373,11 @@ func (peer *Peer) run() {
 				time.Sleep(time.Duration(100) * time.Millisecond) // 得到实时树高耗时
 				for _, id := range peer.peersIds {
 					var height = peer.sendCheckBlockHeight(id)
+					if height == 0 {
+						continue
+					}
 					heightMap[id] = height
 					total += height
-				}
-				if total == 0 {
-					continue
 				}
 				if total > 10 {
 					for id, height := range heightMap {
