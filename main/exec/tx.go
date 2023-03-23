@@ -36,7 +36,7 @@ func Init() {
 	}
 	if !config.ConflictMode { // 局部冲突
 		// 每个splice公用conflictLength长度(l * r)的区间剩下的l * (1 -r)，一共 l * (1 - r) * n + l = len
-		spliceLength = int(float64(len(karr)) / ((1-config.InstanceConflictRate)*float64(config.PeerNumber) + config.InstanceConflictRate))
+		spliceLength = int(float64(len(karr)) / ((1-config.InstanceConflictRate)*float64(config.PeerNumber) + 1))
 		conflictLength = int(float64(spliceLength) * config.InstanceConflictRate)
 	} else { // 全局冲突
 		spliceLength = len(karr)
