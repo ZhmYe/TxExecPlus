@@ -207,23 +207,33 @@ func (orderInstance *OrderInstance) OrderByDAG(DAG [][]int, indexDic map[int]int
 
 }
 func (orderInstance *OrderInstance) execLastWrite() {
-	hashtableList := orderInstance.instances[len(orderInstance.instances)-1].hashTableList
 	lastWrite := *new(Unit)
-	for _, hashtale := range hashtableList {
-		_, ok := hashtale[orderInstance.address]
-		if ok {
-			writeSet := hashtale[orderInstance.address].WriteSet
-			tmpIndex := 0
-			for {
-				lastWrite = writeSet[len(writeSet)-1-tmpIndex]
-				if lastWrite.tx.abort {
-					tmpIndex++
-				} else {
+	checkFlag := false
+	for instanceIndex := len(orderInstance.instances) - 1; instanceIndex >= 0; instanceIndex-- {
+		hashtableList := orderInstance.instances[instanceIndex].hashTableList
+		for blockIndex := len(hashtableList) - 1; blockIndex >= 0; blockIndex-- {
+			tmpStateSet, ok := hashtableList[blockIndex][orderInstance.address]
+			if ok {
+				flag := false
+				for writeIndex := len(tmpStateSet.WriteSet) - 1; writeIndex >= 0; writeIndex-- {
+					writeOp := tmpStateSet.WriteSet[writeIndex]
+					if !writeOp.tx.abort {
+						lastWrite = writeOp
+						flag = true
+						break
+					}
+				}
+				if flag {
+					checkFlag = true
 					break
 				}
 			}
-			//lastWrite = writeSet[len(writeSet) - 1]
+		}
+		if checkFlag {
+			break
 		}
 	}
-	Write(lastWrite.op.Key, lastWrite.op.Val)
+	if checkFlag {
+		Write(lastWrite.op.Key, lastWrite.op.Val)
+	}
 }
