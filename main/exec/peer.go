@@ -371,6 +371,7 @@ func (peer *Peer) checkEpochTimeout() bool {
 }
 func (peer *Peer) BlockOut() {
 	var tx = GenTxSet(peer.id)
+	peer.log("geneate tx:" + strconv.Itoa(len(tx)))
 	//var tx = make([]*Tx, 0)
 	newBlock := NewBlock(tx)
 	//peer.mu.Lock()
