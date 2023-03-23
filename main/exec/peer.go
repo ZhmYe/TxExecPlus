@@ -262,9 +262,9 @@ func (peer *Peer) execImpl(instances []Instance) {
 	execWg.Add(len(OrderInstanceMap))
 	for _, orderInstance := range OrderInstanceMap {
 		tmpInstance := orderInstance
+		fmt.Println("start go func....")
 		go func(tmpInstance OrderInstance, execWg *sync.WaitGroup) {
 			defer execWg.Done()
-			fmt.Println("start go func....")
 			tmpInstance.OrderByDAG(DAG, instanceDict)
 			tmpInstance.execLastWrite()
 			fmt.Println("execLastWrite success...")
