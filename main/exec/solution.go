@@ -54,6 +54,9 @@ func (instance *Instance) computeCascade() {
 		for address, stateset := range hashtable {
 			writeSet := stateset.WriteSet
 			tmpDistance := 0
+			if len(writeSet) == 0 {
+				continue
+			}
 			lastElement := writeSet[len(writeSet)-1] // lastElement.tx_hash
 			// 可能是在块内并发已经被abort的，要取到没有被abort的最后一个
 			tmpFlag := true
