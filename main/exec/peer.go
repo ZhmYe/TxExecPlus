@@ -182,8 +182,8 @@ func (peer *Peer) execImpl(instances []Instance) {
 			defer wg4computeCascade.Done()
 			instance.computeCascade() // 计算每个instance的级联度
 		}(tmpInstance, &wg4computeCascade)
-		wg4computeCascade.Wait()
 	}
+	wg4computeCascade.Wait()
 	// 获取所有address所对应的Instances,用于排序
 	OrderInstanceMap := make(map[string]OrderInstance, 0)
 	instanceDict := make(map[int]int, 0) // 对应有向图坐标
@@ -262,15 +262,15 @@ func (peer *Peer) execImpl(instances []Instance) {
 	execWg.Add(len(OrderInstanceMap))
 	for _, orderInstance := range OrderInstanceMap {
 		tmpInstance := orderInstance
-		fmt.Println("start go func....")
+		//fmt.Println("start go func....")
 		go func(tmpInstance OrderInstance, execWg *sync.WaitGroup) {
 			defer execWg.Done()
 			tmpInstance.OrderByDAG(DAG, instanceDict)
 			tmpInstance.execLastWrite()
 			fmt.Println("execLastWrite success...")
 		}(tmpInstance, &execWg)
-		execWg.Wait()
 	}
+	execWg.Wait()
 }
 func (peer *Peer) addExecNumber(extra int) {
 	tmp := peer.execNumber
