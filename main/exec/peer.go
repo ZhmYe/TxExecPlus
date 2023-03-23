@@ -260,6 +260,7 @@ func (peer *Peer) execImpl(instances []Instance) {
 	}
 	var execWg sync.WaitGroup
 	execWg.Add(len(OrderInstanceMap))
+	fmt.Println(len(OrderInstanceMap))
 	for _, orderInstance := range OrderInstanceMap {
 		tmpInstance := orderInstance
 		go func(tmpInstance OrderInstance, execWg *sync.WaitGroup) {
