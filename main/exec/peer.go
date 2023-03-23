@@ -258,19 +258,19 @@ func (peer *Peer) execImpl(instances []Instance) {
 			DAG[validResult[i]][validResult[i+1]] = 1
 		}
 	}
-	var execWg sync.WaitGroup
-	execWg.Add(len(OrderInstanceMap))
+	//var execWg sync.WaitGroup
+	//execWg.Add(len(OrderInstanceMap))
 	for _, orderInstance := range OrderInstanceMap {
 		tmpInstance := orderInstance
 		//fmt.Println("start go func....")
-		go func(tmpInstance OrderInstance, execWg *sync.WaitGroup) {
-			defer execWg.Done()
-			tmpInstance.OrderByDAG(DAG, instanceDict)
-			tmpInstance.execLastWrite()
-			//fmt.Println("execLastWrite success...")
-		}(tmpInstance, &execWg)
+		//go func(tmpInstance OrderInstance, execWg *sync.WaitGroup) {
+		//	defer execWg.Done()
+		tmpInstance.OrderByDAG(DAG, instanceDict)
+		tmpInstance.execLastWrite()
+		//fmt.Println("execLastWrite success...")
+		//}(tmpInstance, &execWg)
 	}
-	execWg.Wait()
+	//execWg.Wait()
 }
 func (peer *Peer) addExecNumber(extra int) {
 	tmp := peer.execNumber
