@@ -422,6 +422,9 @@ func (peer *Peer) run() {
 					heightMap[id] = height
 					total += height
 				}
+				if total == 0 {
+					continue
+				}
 				if total > 10 {
 					for id, height := range heightMap {
 						tmp := int(math.Floor(float64(10) * float64(height) / float64(total)))
