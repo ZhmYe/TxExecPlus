@@ -187,6 +187,7 @@ func (peer *Peer) execImpl(instances []Instance) {
 	// 获取所有address所对应的Instances,用于排序
 	OrderInstanceMap := make(map[string]OrderInstance, 0)
 	instanceDict := make(map[int]int, 0) // 对应有向图坐标
+	addressNumber := 0
 	tmpIndex := 0
 	for _, instance := range instances {
 		instanceDict[instance.peerId] = tmpIndex
@@ -195,6 +196,7 @@ func (peer *Peer) execImpl(instances []Instance) {
 			_, ok := OrderInstanceMap[address]
 			if !ok {
 				OrderInstanceMap[address] = *newOrderInstance(address)
+				addressNumber++
 			}
 			tmpOrderInstance := OrderInstanceMap[address]
 			tmpOrderInstance.appendInstance(instance)
@@ -261,6 +263,7 @@ func (peer *Peer) execImpl(instances []Instance) {
 	var execWg sync.WaitGroup
 	execWg.Add(len(OrderInstanceMap))
 	fmt.Println(len(OrderInstanceMap))
+	fmt.Println(addressNumber)
 	for _, orderInstance := range OrderInstanceMap {
 		tmpInstance := orderInstance
 		go func(tmpInstance OrderInstance, execWg *sync.WaitGroup) {
