@@ -207,7 +207,7 @@ func (orderInstance *OrderInstance) OrderByDAG(DAG [][]int, indexDic map[int]int
 
 }
 func (orderInstance *OrderInstance) execLastWrite() {
-	hashtableList := orderInstance.instances[len(orderInstance.instances)].hashTableList
+	hashtableList := orderInstance.instances[len(orderInstance.instances)-1].hashTableList
 	lastWrite := *new(Unit)
 	for _, hashtale := range hashtableList {
 		_, ok := hashtale[orderInstance.address]

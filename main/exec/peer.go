@@ -142,14 +142,14 @@ func (peer *Peer) getHashTable(id int, bias int) map[string]StateSet {
 }
 func (peer *Peer) exec(epoch map[int]int) {
 	peer.mu.Lock()
-	fmt.Println("exec start...")
+	//fmt.Println("exec start...")
 	if len(epoch) != 0 {
 		instances := make([]Instance, 0)
 		for id, bias := range epoch {
 			instance := newInstance(id)
 			for i := 0; i < bias; i++ {
 				hashtable := peer.getHashTable(id, i)
-				fmt.Println("transaction sort start...")
+				//fmt.Println("transaction sort start...")
 				TransactionSort(hashtable)
 				instance.addHashTable(hashtable)
 			}
@@ -175,7 +175,7 @@ func (peer *Peer) execImpl(instances []Instance) {
 	var wg4computeCascade sync.WaitGroup
 	wg4computeCascade.Add(len(instances))
 	// 并行计算所有Instance级联度
-	fmt.Println("cascade compute start...")
+	//fmt.Println("cascade compute start...")
 	for _, instance := range instances {
 		tmpInstance := instance
 		go func(instance Instance, wg4computeCascade *sync.WaitGroup) {
