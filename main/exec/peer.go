@@ -266,6 +266,7 @@ func (peer *Peer) execImpl(instances []Instance) {
 			defer execWg.Done()
 			tmpInstance.OrderByDAG(DAG, instanceDict)
 			tmpInstance.execLastWrite()
+			fmt.Println("execLastWrite success...")
 		}(tmpInstance, &execWg)
 		execWg.Wait()
 	}
