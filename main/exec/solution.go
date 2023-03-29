@@ -22,9 +22,10 @@ func (stateSet *StateSet) appendToWriteSet(unit Unit) {
 }
 
 type Instance struct {
-	peerId        int                   // Instance ID
-	hashTableList []map[string]StateSet // 串联的子块hashtable
-	cascade       map[string]int        // 级联度
+	peerId        int                          // Instance ID
+	hashTableList []map[string]StateSet        // 串联的子块hashtable
+	cascade       map[string]int               // 级联度
+	record        map[string]map[string][]Unit // 统计每笔交易在每个地址后面直接相连的读操作个数
 }
 
 func newInstance(id int) *Instance {
@@ -32,6 +33,7 @@ func newInstance(id int) *Instance {
 	instance.peerId = id
 	instance.hashTableList = make([]map[string]StateSet, 0) // 每个hashtable内通过key去寻找下一个元素内的顺序，保证顺序为rw
 	instance.cascade = make(map[string]int, 0)
+	instance.record = make(map[string]map[string][]Unit, 0)
 	return instance
 }
 func (instance *Instance) addHashTable(hashtable map[string]StateSet) {
@@ -96,6 +98,7 @@ func (instance *Instance) computeCascade() {
 			}
 		}
 	}
+	instance.record = nextReadNumberInAddress
 	// end for nextReadNumberInAddress
 
 	// 计算instance每个address上第一个读集的级联度，所有交易在nextReadNumberInAddress中的所有address相加
@@ -135,6 +138,27 @@ func getReadSetNumber(readSet []Unit, record map[string]map[string][]Unit) int {
 		}
 	}
 	return total
+}
+func (instance *Instance) abortReadSet(readSet []Unit) {
+	repeatCheck := make(map[string]bool)
+	if len(readSet) == 0 {
+		return
+	}
+	for _, unit := range readSet {
+		_, repeat := repeatCheck[unit.txHash]
+		if repeat || unit.tx.abort {
+			continue
+		}
+		repeatCheck[unit.txHash] = true
+		unit.tx.abort = true
+		CascadeInAddress, haveCascade := instance.record[unit.txHash]
+		if haveCascade {
+			for _, eachReadSet := range CascadeInAddress {
+				instance.abortReadSet(eachReadSet)
+			}
+		}
+
+	}
 }
 
 type OrderInstance struct {
@@ -190,18 +214,41 @@ func (orderInstance *OrderInstance) getOrder() []int {
 	}
 	return result
 }
-func (orderInstance *OrderInstance) OrderByDAG(DAG [][]int, indexDic map[int]int) {
-	sortFlag := true
+func (orderInstance *OrderInstance) OrderByDAG(sortOrder []int, indexDic map[int]int) {
+	map4index2instance := make(map[int]Instance)
 	for i := 0; i < len(orderInstance.instances)-1; i++ {
-		sortFlag = true
-		for j := 0; j < len(orderInstance.instances)-i-1; j++ {
-			if DAG[indexDic[orderInstance.instances[j].peerId]][indexDic[orderInstance.instances[j+1].peerId]] == 1 {
-				orderInstance.instances[j], orderInstance.instances[j+1] = orderInstance.instances[j+1], orderInstance.instances[j]
-				sortFlag = false
+		map4index2instance[indexDic[orderInstance.instances[i].peerId]] = orderInstance.instances[i]
+	}
+	newInstances := make([]Instance, 0)
+	for _, index := range sortOrder {
+		instance, exist := map4index2instance[index]
+		if exist {
+			newInstances = append(newInstances, instance)
+			if len(newInstances) == len(orderInstance.instances) {
+				break
 			}
 		}
-		if sortFlag {
-			break
+	}
+	orderInstance.instances = newInstances
+	//sortFlag := true
+	//for i := 0; i < len(orderInstance.instances)-1; i++ {
+	//	sortFlag = true
+	//	for j := 0; j < len(orderInstance.instances)-i-1; j++ {
+	//		if DAG[indexDic[orderInstance.instances[j].peerId]][indexDic[orderInstance.instances[j+1].peerId]] == 1 {
+	//			orderInstance.instances[j], orderInstance.instances[j+1] = orderInstance.instances[j+1], orderInstance.instances[j]
+	//			sortFlag = false
+	//		}
+	//	}
+	//	if sortFlag {
+	//		break
+	//	}
+	//}
+	// 排好序后，除了第一个Instances外所有的Instances的第一个块的读集（有可能没有）需要全部abort，并将其级联的所有读abort
+	if len(orderInstance.instances) > 1 {
+		for i := 1; i < len(orderInstance.instances)-1; i++ {
+			tmpInstance := orderInstance.instances[i]
+			FirstBlock := tmpInstance.hashTableList[0]
+			tmpInstance.abortReadSet(FirstBlock[orderInstance.address].ReadSet)
 		}
 	}
 

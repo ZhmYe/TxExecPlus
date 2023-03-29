@@ -260,12 +260,13 @@ func (peer *Peer) execImpl(instances []Instance) {
 	}
 	//var execWg sync.WaitGroup
 	//execWg.Add(len(OrderInstanceMap))
+	topologicalOrder := TopologicalOrder(DAG)
 	for _, orderInstance := range OrderInstanceMap {
 		tmpInstance := orderInstance
 		//fmt.Println("start go func....")
 		//go func(tmpInstance OrderInstance, execWg *sync.WaitGroup) {
 		//	defer execWg.Done()
-		tmpInstance.OrderByDAG(DAG, instanceDict)
+		tmpInstance.OrderByDAG(topologicalOrder, instanceDict)
 		tmpInstance.execLastWrite()
 		//fmt.Println("execLastWrite success...")
 		//}(tmpInstance, &execWg)
